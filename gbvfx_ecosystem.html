@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBVFX AI Ecosystem</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e17; color: #c8d6e5; font-family: 'SF Pro Display', -apple-system, 'Segoe UI', sans-serif; padding: 30px 40px 60px; }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 { font-size: 26px; font-weight: 300; color: #fff; letter-spacing: 2px; }
+  .header h1 span { color: #f39c12; font-weight: 600; }
+  .header .sub { font-size: 12px; color: #576574; margin-top: 5px; letter-spacing: 1px; }
+
+  .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; align-items: start; }
+  @media (max-width: 900px) {
+    .columns { grid-template-columns: 1fr; }
+    .tree ul { margin-left: 28px; }
+    .leaf { margin-left: 28px; }
+    .leaf::before { left: -28px; width: 28px; }
+    .branch-header .tag { display: none; }
+    body { padding: 20px 12px 40px; }
+  }
+  .column { min-width: 0; }
+
+  /* Column headers */
+  .col-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .col-header .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .col-header .badge-work { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+  .col-header .badge-personal { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
+  .col-header h2 { font-size: 16px; font-weight: 400; color: #fff; }
+
+  /* Tree */
+  .tree { list-style: none; padding-left: 0; }
+  .tree ul { list-style: none; padding-left: 0; margin-left: 108px; border-left: 1px solid rgba(255,255,255,0.06); }
+  .tree ul.collapsed { display: none; }
+
+  /* Branch node */
+  .branch { margin-bottom: 4px; }
+  .branch-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; cursor: pointer; transition: all 0.2s; user-select: none; }
+  .branch-header:hover { background: rgba(255,255,255,0.04); }
+  .branch-header .arrow { font-size: 10px; color: #576574; transition: transform 0.2s; width: 14px; text-align: center; flex-shrink: 0; }
+  .branch-header .arrow.open { transform: rotate(90deg); }
+  .branch-header .icon { font-size: 18px; flex-shrink: 0; }
+  .branch-header .label { font-size: 13px; font-weight: 600; color: #fff; }
+  .branch-header .tag { font-size: 9px; padding: 2px 7px; border-radius: 10px; font-weight: 500; letter-spacing: 0.5px; flex-shrink: 0; }
+  .branch-header .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-live { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+  .dot-partial { background: #f39c12; box-shadow: 0 0 6px #f39c12; }
+  .dot-planned { background: #576574; }
+
+  /* Leaf / detail card */
+  .leaf { margin: 2px 0 2px 108px; padding: 8px 14px; border-radius: 8px; position: relative; }
+  .leaf::before { content: ''; position: absolute; left: -108px; top: 50%; width: 108px; height: 1px; background: rgba(255,255,255,0.06); }
+  .leaf .leaf-name { font-size: 12px; color: #8395a7; font-weight: 500; }
+  .leaf .leaf-desc { font-size: 11px; color: #576574; margin-top: 2px; line-height: 1.5; }
+  .leaf code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; font-size: 10px; font-family: 'SF Mono', monospace; color: #f39c12; }
+
+  /* Detail expand on branch */
+  .detail { margin: 4px 0 8px 20px; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); display: none; }
+  .detail.open { display: block; }
+  .detail .d-section { margin-bottom: 10px; }
+  .detail .d-section:last-child { margin-bottom: 0; }
+  .detail .d-label { font-size: 10px; color: #576574; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+  .detail .d-text { font-size: 12px; color: #c8d6e5; line-height: 1.6; }
+  .detail .d-flow { font-family: 'SF Mono', monospace; font-size: 10px; color: #8395a7; line-height: 1.8; white-space: pre-wrap; }
+  .detail .d-gotcha { background: rgba(231,76,60,0.08); border-left: 2px solid #e74c3c; padding: 5px 10px; margin: 3px 0; border-radius: 0 4px 4px 0; font-size: 11px; color: #c8d6e5; }
+  .detail .d-file { font-family: 'SF Mono', monospace; font-size: 10px; color: #f39c12; display: block; margin: 2px 0; }
+  .detail .d-tag { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 10px; margin-right: 4px; margin-bottom: 3px; }
+
+  /* Tag colours */
+  .tag-vps { background: rgba(52,152,219,0.15); color: #3498db; }
+  .tag-mac2 { background: rgba(46,204,113,0.15); color: #2ecc71; }
+  .tag-mbp { background: rgba(155,89,182,0.15); color: #9b59b6; }
+  .tag-cloud { background: rgba(243,156,18,0.15); color: #f39c12; }
+  .tag-session { background: rgba(255,255,255,0.06); color: #8395a7; }
+
+  /* Infrastructure footer */
+  .infra { margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 24px; }
+  .infra h3 { font-size: 14px; color: #8395a7; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; text-align: center; }
+  .infra-grid { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .infra-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px 18px; min-width: 200px; flex: 1; max-width: 280px; }
+  .infra-card h4 { font-size: 12px; color: #fff; margin-bottom: 6px; }
+  .infra-card .infra-line { font-size: 11px; color: #576574; line-height: 1.6; }
+  .infra-card code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; font-size: 10px; font-family: 'SF Mono', monospace; color: #f39c12; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="gbvfx_logo.png" alt="GBVFX" style="height: 40px; margin-bottom: 12px; opacity: 0.9;">
+  <h1>AI Ecosystem</h1>
+  <div class="sub">Everything Gary + AI built in 6 weeks &mdash; click any item to expand</div>
+</div>
+
+<div class="columns">
+
+<!-- ==================== WORK ==================== -->
+<div class="column">
+  <div class="col-header">
+    <div class="badge badge-work">Work</div>
+    <h2>GBVFX &mdash; VFX Supervision</h2>
+  </div>
+
+  <ul class="tree" id="work-tree">
+
+    <!-- SPUD -->
+    <li class="branch" data-id="spud">
+      <div class="branch-header" onclick="toggle('spud')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">🤖</span>
+        <span class="label">Spud &mdash; AI Agent</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-vps">VPS</span>
+      </div>
+      <div class="detail" id="detail-spud">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Gary's AI assistant, reachable via Discord DM. Answers questions about projects, emails, schedules. Escalates hard questions to Claude Code on Mac Studio 2 via SSH.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Session</div>
+          <div class="d-text"><span class="d-tag tag-session">Mac2 Integration</span></div>
+        </div>
+      </div>
+      <ul>
+        <li class="branch" data-id="escalation">
+          <div class="branch-header" onclick="toggle('escalation')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🔗</span>
+            <span class="label">Claude Code Escalation</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-mac2">Mac Studio 2</span>
+          </div>
+          <div class="detail" id="detail-escalation">
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">Gary says "claude &lt;question&gt;" in Discord
+  → Spud detects prefix → ask-claude.js
+  → SSH to Mac Studio 2
+  → claude -p "&lt;question&gt;"
+  → answer relayed back to Discord</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Key Files</div>
+              <span class="d-file">/home/gaz/.openclaw/workspace/scripts/ask-claude.js</span>
+              <span class="d-file">/home/gaz/.openclaw/workspace/AGENTS.md</span>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="rag">
+          <div class="branch-header" onclick="toggle('rag')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🧠</span>
+            <span class="label">RAG Knowledge Base</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-mac2">Mac Studio 2</span>
+          </div>
+          <div class="detail" id="detail-rag">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">ChromaDB + Ollama (nomic-embed-text). 72,381 document chunks from Dropbox + 3,417 email chunks from Outlook. Scene-aware script chunking, paragraph email chunking.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Key Files</div>
+              <span class="d-file">/Users/garygbvfx/gbvfx-agent/rag/querier.py</span>
+              <span class="d-file">/Users/garygbvfx/gbvfx-agent/data/chroma</span>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">Email dedup: uses message_id not thread_id (was a bug)</div>
+              <div class="d-gotcha">Email attachments NOT indexed — only bodies</div>
+              <div class="d-gotcha">Port 5001 — launchctl kickstart, NEVER kill</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="briefings">
+          <div class="branch-header" onclick="toggle('briefings')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📄</span>
+            <span class="label">Briefings</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-cloud">Make.com</span>
+          </div>
+          <div class="detail" id="detail-briefings">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Callsheet PDFs arrive via email → Make.com extracts data via Claude API → Google Calendar event + Discord #call-sheets briefing with day, location, weather, VFX flags.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Session</div>
+              <div class="d-text"><span class="d-tag tag-session">MAKE</span></div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="reminders">
+          <div class="branch-header" onclick="toggle('reminders')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📋</span>
+            <span class="label">Reminders &amp; Check-ins</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-vps">VPS</span>
+          </div>
+          <div class="detail" id="detail-reminders">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Node.js Express service (port 3456). Replaced broken LLM-based check-ins. JSON data store, dark-themed web checklist, Discord DM at 13:00 + 17:00 BST.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">"remind me at 2pm to X" → Spud writes reminders.json
+  → node-cron fires → Discord DM with link
+  → Gary taps → web checklist → tick items</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">Tailscale required on iPhone for checklist access</div>
+              <div class="d-gotcha">Old OpenClaw crons DISABLED — don't re-enable (duplicates)</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Session</div>
+              <div class="d-text"><span class="d-tag tag-session">Spud Reminders</span></div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+
+    <!-- DELIVERY PIPELINE -->
+    <li class="branch" data-id="delivery">
+      <div class="branch-header" onclick="toggle('delivery')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">📦</span>
+        <span class="label">Delivery Pipeline</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-mac2">Mac Studio 2</span>
+      </div>
+      <div class="detail" id="detail-delivery">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Automated VFX delivery agent. Watches Dropbox for QT renders, uploads to ShotGrid, creates playlists, copies to server, generates CSVs, sends delivery emails. EXR flow uses zero-copy symlinks to Media Shuttle.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Session</div>
+          <div class="d-text"><span class="d-tag tag-session">Delivery Automation</span></div>
+        </div>
+      </div>
+      <ul>
+        <li class="branch" data-id="qt-flow">
+          <div class="branch-header" onclick="toggle('qt-flow')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🎬</span>
+            <span class="label">QT Delivery</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-qt-flow">
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">Resolve render → Dropbox sync → watcher.py detects .mov
+  → parser.py extracts shot code + version
+  → SG upload (Version entity + thumbnail)
+  → Discord notification → playlist created
+  → Copy to server DEL/QT/ → CSV → email</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">Dropbox sync check (st_blocks) occasionally misses mid-sync files</div>
+              <div class="d-gotcha">sg_delivery_name lives on Version entity, not Shot</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="exr-flow">
+          <div class="branch-header" onclick="toggle('exr-flow')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🖼️</span>
+            <span class="label">EXR Delivery</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-exr-flow">
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">SG status → "Send EXR" → symlink folders on server
+  → Manual Media Shuttle send (web portal)
+  → Harbor confirmation email → Spud Outlook
+  → harbor_email_watcher.js (VPS, 5min poll)
+  → POST /trigger_exr_confirm → SG update → email</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">Symlinks work via web portal, NOT Signiant drag-drop</div>
+              <div class="d-gotcha">_exr_prepped state is in-memory — restart loses it</div>
+              <div class="d-gotcha">Company 3 (TOM) requires separate deliveries per episode</div>
+              <div class="d-gotcha">Harbor email watcher (VPS) polls Outlook every 5 min for confirmation — defaults to BLM</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="download-server">
+          <div class="branch-header" onclick="toggle('download-server')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🌐</span>
+            <span class="label">deliver.gbvfx.com</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-vps">VPS + Mac Studio 2</span>
+          </div>
+          <div class="detail" id="detail-download-server">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Self-hosted HTTPS download server for QT deliveries. Replaces Media Shuttle for QT sends. Branded download page with SG thumbnails, 64-char token auth, 7-day auto-expiry, full download audit trail. EXR stays on Media Shuttle.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">QT delivery prep → auto-generate token + cache SG thumbnails
+  → email with "Download Files" button
+  → Client clicks → deliver.gbvfx.com (Caddy on VPS)
+  → Tailscale → Mac Studio 2:5002
+  → branded page: individual downloads or zip
+  → SG stamped with sg_client_downloaded on download</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Key Files</div>
+              <span class="d-file">delivery-automation/download_tokens.py — token CRUD, audit log</span>
+              <span class="d-file">agent.py — /dl/{token} routes, streaming, zip</span>
+              <span class="d-file">VPS: ~/bin/caddy + Caddyfile, systemd caddy-deliver.service</span>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">Token state persisted to JSON — survives agent restarts</div>
+              <div class="d-gotcha">SG thumbnails cached locally (S3 signed URLs expire in 15 min)</div>
+              <div class="d-gotcha">Only /dl/* exposed publicly — dashboard/API/triggers return 404</div>
+              <div class="d-gotcha">Caddy needs setcap for port 443: sudo setcap cap_net_bind_service=+ep ~/bin/caddy</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Session</div>
+              <div class="d-text"><span class="d-tag tag-session">Delivery Automation</span></div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="qt-confirm">
+          <div class="branch-header" onclick="toggle('qt-confirm')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">✉️</span>
+            <span class="label">QT Delivery Confirmation</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-qt-confirm">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Automated email to post house confirming QT delivery. Includes delivery name, shot list, CSV attachment. Sent via iCloud SMTP as gary@gbvfx.com.</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="exr-confirm">
+          <div class="branch-header" onclick="toggle('exr-confirm')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">✉️</span>
+            <span class="label">EXR Delivery Confirmation</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-exr-confirm">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Triggered after Harbor email watcher confirms Media Shuttle upload. Updates ShotGrid (status, Vers at Online, EXR package), sends confirmation email to post house.</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="ftrack">
+          <div class="branch-header" onclick="toggle('ftrack')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">👁️</span>
+            <span class="label">Vendor Review to ftrack</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-ftrack">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">QT review files uploaded to ftrack for vendor review and client feedback.</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="del-dashboard">
+          <div class="branch-header" onclick="toggle('del-dashboard')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📊</span>
+            <span class="label">Dashboard</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-ts">Tailscale</span>
+          </div>
+          <div class="detail" id="detail-del-dashboard">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Web UI on Mac Studio 2 :5002. Shows pipeline status, delivery history, EXR prep/confirm controls. Accessible via Tailscale.</div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+
+    <!-- SHOTGRID -->
+    <li class="branch" data-id="shotgrid">
+      <div class="branch-header" onclick="toggle('shotgrid')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">🎯</span>
+        <span class="label">ShotGrid Management</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-cloud">Cloud</span>
+      </div>
+      <div class="detail" id="detail-shotgrid">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Central production database. Projects: TREA (420), BLM (386), TOM (321), TTM (287). OAuth2 REST API from both MacBook and Mac Studio 2.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Gotchas</div>
+          <div class="d-gotcha">Must use POST _search (GET returns 0 for TREA)</div>
+          <div class="d-gotcha">TREA project 420 ≠ "Treasure Island" project 255</div>
+          <div class="d-gotcha">URL-encode the ? in client secret as %3F</div>
+        </div>
+      </div>
+      <ul>
+        <li class="branch" data-id="grabber">
+          <div class="branch-header" onclick="toggle('grabber')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📸</span>
+            <span class="label">RV Shot Grabber</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-mbp">MacBook Pro</span>
+          </div>
+          <div class="detail" id="detail-grabber">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Hotkey-triggered (Cmd+Shift+G) screenshot from RV. Derives timecode from frame number, pre-fills dialog, creates Shot in ShotGrid. Full offline fallback with JSON queue.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">Cmd+Shift+G → screencapture → parse RV title
+  → frame_to_tc() → dialog shown immediately
+  → push_to_sg() → Shot + thumbnail created</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Key Files</div>
+              <span class="d-file">rv_shot_grabber.py / rv_shot_grabber_offline.py</span>
+              <span class="d-file">~/.config/gbvfx/rv_shot_grabber.json</span>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Session</div>
+              <div class="d-text"><span class="d-tag tag-session">ShotGrid Ingest</span></div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="scripts">
+          <div class="branch-header" onclick="toggle('scripts')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📝</span>
+            <span class="label">Script Comparison &amp; Shot Alignment</span>
+            <span class="status-dot dot-live"></span>
+            <span class="tag tag-mbp">MacBook Pro</span>
+          </div>
+          <div class="detail" id="detail-scripts">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Compares ShotGrid shot data against current script PDFs. Ensures shot codes match scene numbers, descriptions match script text. Mandatory rules prevent partial-read errors (the ep106 disaster).</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">ALWAYS check total page count before reading scripts</div>
+              <div class="d-gotcha">Shot codes EEE_SSS_NNN — scene must match CURRENT draft</div>
+              <div class="d-gotcha">OMITTED scenes are normal — don't assume rest is cut</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Session</div>
+              <div class="d-text"><span class="d-tag tag-session">Script Help</span></div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+
+    <!-- RESOLVE -->
+    <li class="branch" data-id="resolve">
+      <div class="branch-header" onclick="toggle('resolve')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">🎨</span>
+        <span class="label">DaVinci Resolve &mdash; Colour Pipeline</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-mac2">Mac Studio 2</span>
+      </div>
+      <div class="detail" id="detail-resolve">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Standardised colour pipeline for reviewing plates from multiple DI houses. Each show has a specific CST + LUT chain to get from plate colour space to Rec.709. Scripting API on localhost:9327.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Session</div>
+          <div class="d-text"><span class="d-tag tag-session">Resolve</span></div>
+        </div>
+      </div>
+      <ul>
+        <li class="leaf">
+          <div class="leaf-name">TREA</div>
+          <div class="leaf-desc">AP0 → AWG4/LogC4 → <code>TI_V11_desat48_709_33.cube</code></div>
+        </li>
+        <li class="leaf">
+          <div class="leaf-name">BLM</div>
+          <div class="leaf-desc">AP0 → AWG4/LogC4 → ModLUT (LogC4→LogC3) → <code>HBR103_Beta6_OT</code></div>
+        </li>
+        <li class="leaf">
+          <div class="leaf-name">TTM</div>
+          <div class="leaf-desc">S-Gamut3.Cine → S-Log3 → <code>gc_ttam_look2.cube</code></div>
+        </li>
+        <li class="leaf">
+          <div class="leaf-name">T&amp;T</div>
+          <div class="leaf-desc">EXR from CO3 via Aspera — pipeline TBD</div>
+        </li>
+        <li class="branch" data-id="resolve-gotchas">
+          <div class="branch-header" onclick="toggle('resolve-gotchas')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">⚠️</span>
+            <span class="label">Critical Rules</span>
+          </div>
+          <div class="detail" id="detail-resolve-gotchas">
+            <div class="d-gotcha">NEVER use ACES colour science — always DaVinci YRGB</div>
+            <div class="d-gotcha">CST: Tone Mapping None, Gamut Mapping None, all OOTFs Off</div>
+            <div class="d-gotcha">Export presets don't save output folder</div>
+            <div class="d-gotcha">Resolve must be running for scripting API</div>
+          </div>
+        </li>
+      </ul>
+    </li>
+
+    <!-- MAKE.COM (WORK) -->
+    <li class="branch" data-id="make-work">
+      <div class="branch-header" onclick="toggle('make-work')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">⚡</span>
+        <span class="label">Make.com &mdash; Production Automations</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-cloud">Cloud</span>
+      </div>
+      <div class="detail" id="detail-make-work">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">No-code automations on Make.com for Treasure Island production emails. Watches Spud's Outlook, archives attachments to Dropbox, extracts data via Claude API.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Session</div>
+          <div class="d-text"><span class="d-tag tag-session">MAKE</span></div>
+        </div>
+      </div>
+      <ul>
+        <li class="branch" data-id="callsheet">
+          <div class="branch-header" onclick="toggle('callsheet')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📄</span>
+            <span class="label">Callsheet Archiver</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-callsheet">
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">Email → Spud Outlook → Make watches (15 min)
+  → PDF attachment → Dropbox archive
+  → Claude API (raw HTTP, base64 PDF) → JSON
+  → Google Calendar ("Call Sheets")
+  → Discord #call-sheets briefing</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">contentBytes is pre-base64 — NEVER double-encode</div>
+              <div class="d-gotcha">Anthropic API via raw HTTP POST, not native Make module</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="continuity">
+          <div class="branch-header" onclick="toggle('continuity')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">📎</span>
+            <span class="label">Continuity Notes Archiver</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-continuity">
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">Email → Spud Outlook → Make watches
+  → Attachment saved to Dropbox per day folder
+  → Pure archiving, no AI/calendar</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">Auto-forward rule from gary@gbvfx.com → spud not yet set up — currently manual</div>
+              <div class="d-gotcha">Folder formula must match in M6 AND M8 — can't use M6's path_display on error handler iterations</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="make-infra">
+          <div class="branch-header" onclick="toggle('make-infra')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🔑</span>
+            <span class="label">Integrations &amp; Credentials</span>
+          </div>
+          <div class="detail" id="detail-make-infra">
+            <div class="d-section">
+              <div class="d-label">Connections</div>
+              <div class="d-text">Azure app (client ff0e6d01, tenant 96ee106a) for Outlook. Anthropic API via raw HTTP POST. Google Calendar ("Call Sheets"). Discord webhooks. Dropbox. $10.59/mo plan, 1-min scheduling.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Gotchas</div>
+              <div class="d-gotcha">regex() doesn't exist in Make — use replace() with regex syntax</div>
+              <div class="d-gotcha">No [n] array indexing — use first(), last(), get()</div>
+              <div class="d-gotcha">Scheduler silently disengages after edits — toggle Active off/on</div>
+              <div class="d-gotcha">Modules add left to right only — can't insert to the left</div>
+              <div class="d-gotcha">Filters are on connector lines, not standalone modules</div>
+              <div class="d-gotcha">Ops budget: Callsheet ~31 ops/email, Continuity ~9 ops/email</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="make-unbuilt">
+          <div class="branch-header" onclick="toggle('make-unbuilt')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🔲</span>
+            <span class="label">Unbuilt Features</span>
+            <span class="status-dot dot-planned"></span>
+          </div>
+          <div class="detail" id="detail-make-unbuilt">
+            <div class="d-section">
+              <div class="d-text">Splinter unit extraction, advance day calendar events, VFX alert (vfx_required != "No"), calendar duplicate prevention, continuity notes auto-forward rule.</div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+
+    <!-- CLAUDE CODE SESSIONS -->
+    <li class="branch" data-id="sessions">
+      <div class="branch-header" onclick="toggle('sessions')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">💻</span>
+        <span class="label">Claude Code &mdash; 7 Sessions</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-mbp">MacBook Pro</span>
+      </div>
+      <div class="detail" id="detail-sessions">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Seven concurrent persistent sessions, each specialising in a domain. Central session_hub.md for cross-session knowledge sharing. This diagram is generated from that hub.</div>
+        </div>
+      </div>
+      <ul>
+        <li class="leaf"><div class="leaf-name">ShotGrid Ingest</div><div class="leaf-desc">RV Shot Grabber, bulk import, thumbnails</div></li>
+        <li class="leaf"><div class="leaf-name">Mac2 Integration</div><div class="leaf-desc">Spud ↔ Claude Code escalation, RAG fixes</div></li>
+        <li class="leaf"><div class="leaf-name">Spud Reminders</div><div class="leaf-desc">Reminder service, check-in replacement</div></li>
+        <li class="leaf"><div class="leaf-name">Delivery Automation</div><div class="leaf-desc">QT + EXR pipeline, Harbor watcher</div></li>
+        <li class="leaf"><div class="leaf-name">Script Help</div><div class="leaf-desc">Script comparison rules, shot alignment</div></li>
+        <li class="leaf"><div class="leaf-name">Resolve</div><div class="leaf-desc">Colour pipeline knowledge, automation</div></li>
+        <li class="leaf"><div class="leaf-name">MAKE</div><div class="leaf-desc">Make.com automations, callsheets, Spotify</div></li>
+        <li class="leaf"><div class="leaf-name" style="color:#f39c12">All-Knowing (this session)</div><div class="leaf-desc">Central hub, cross-session awareness</div></li>
+      </ul>
+    </li>
+
+  </ul>
+</div>
+
+<!-- ==================== PERSONAL ==================== -->
+<div class="column">
+  <div class="col-header">
+    <div class="badge badge-personal">Personal</div>
+    <h2>Side Projects</h2>
+  </div>
+
+  <ul class="tree" id="personal-tree">
+
+    <!-- GARYLAND -->
+    <li class="branch" data-id="garyland">
+      <div class="branch-header" onclick="toggle('garyland')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">🌍</span>
+        <span class="label">GaryLand</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-cloud">GitHub Pages + CF</span>
+      </div>
+      <div class="detail" id="detail-garyland">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Personal venue discovery web app. Enter a location, pick a category (pubs, restaurants, sun spots), get AI-curated recommendations with photos, ratings, shadow maps. Single HTML file, no build step.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Session</div>
+          <div class="d-text"><span class="d-tag tag-session">GaryLand</span></div>
+        </div>
+      </div>
+      <ul>
+        <li class="branch" data-id="venue-search">
+          <div class="branch-header" onclick="toggle('venue-search')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🔍</span>
+            <span class="label">Venue Search &amp; Chat</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-venue-search">
+            <div class="d-section">
+              <div class="d-label">Flow</div>
+              <div class="d-flow">Typed location → geocode → Google Places (3 parallel)
+  → Claude Sonnet rates + summarises
+  → Cards with photos, shadow maps
+  → "Tell me more" → venue chat</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="favourites">
+          <div class="branch-header" onclick="toggle('favourites')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🌐</span>
+            <span class="label">Favourites Globe</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-favourites">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">3D spinning globe (globe.gl/Three.js) with Blue Marble texture. Country flag strip + folder tree. Tap venue → globe zooms → crossfade to Leaflet satellite map. Green pin = active, gold = others.</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="kv-sync">
+          <div class="branch-header" onclick="toggle('kv-sync')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">☁️</span>
+            <span class="label">Cloudflare KV Sync</span>
+            <span class="status-dot dot-live"></span>
+          </div>
+          <div class="detail" id="detail-kv-sync">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Server-side favourites + benches storage. Worker v5, KV namespace "FAVS". Device token system (crypto.randomUUID). Cross-device sync via 6-char code (10 min TTL). localStorage as instant cache + offline fallback.</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="benches">
+          <div class="branch-header" onclick="toggle('benches')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">🪑</span>
+            <span class="label">And Pause (Benches)</span>
+            <span class="status-dot dot-partial"></span>
+          </div>
+          <div class="detail" id="detail-benches">
+            <div class="d-section">
+              <div class="d-label">What</div>
+              <div class="d-text">Instagram bench collection. Upload from camera roll, EXIF GPS + date extraction (pure JS). Pin-drop map for photos without GPS. Globe + Leaflet rendering.</div>
+            </div>
+            <div class="d-section">
+              <div class="d-label">Known Issue</div>
+              <div class="d-gotcha">Photos stored as base64 data URLs — will hit localStorage 5MB limit. Needs proper image hosting (Cloudflare R2).</div>
+            </div>
+          </div>
+        </li>
+        <li class="branch" data-id="garyland-gotchas">
+          <div class="branch-header" onclick="toggle('garyland-gotchas')">
+            <span class="arrow">&#9654;</span>
+            <span class="icon">⚠️</span>
+            <span class="label">Gotchas</span>
+          </div>
+          <div class="detail" id="detail-garyland-gotchas">
+            <div class="d-gotcha">Single file — everything in index.html (~2200 lines)</div>
+            <div class="d-gotcha">container.innerHTML='' destroys siblings — Leaflet in separate wrapper</div>
+            <div class="d-gotcha">iOS Safari aggressively caches — cache-busting needed</div>
+            <div class="d-gotcha">Nominatim: 1 req/sec rate limit</div>
+            <div class="d-gotcha">Home screen vs Safari = separate localStorage — use KV sync</div>
+          </div>
+        </li>
+      </ul>
+    </li>
+
+    <!-- SPOTIFY -->
+    <li class="branch" data-id="spotify">
+      <div class="branch-header" onclick="toggle('spotify')">
+        <span class="arrow">&#9654;</span>
+        <span class="icon">🎵</span>
+        <span class="label">Spotify Playlist Sync</span>
+        <span class="status-dot dot-live"></span>
+        <span class="tag tag-cloud">Make.com</span>
+      </div>
+      <div class="detail" id="detail-spotify">
+        <div class="d-section">
+          <div class="d-label">What</div>
+          <div class="d-text">Automated weekly playlist building from BBC Radio 6 tracklists. Two scenarios: Guy Garvey and Cerys Matthews. Runs Sunday afternoons.</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Flow</div>
+          <div class="d-flow">BBC RMS API → episode PID → segments.json
+  → iterate tracks → Spotify search → add to playlist
+  → Discord #scenarios notification</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Gotchas</div>
+          <div class="d-gotcha">Spotify client secret needs rotation (exposed in chat history)</div>
+        </div>
+        <div class="d-section">
+          <div class="d-label">Session</div>
+          <div class="d-text"><span class="d-tag tag-session">MAKE</span></div>
+        </div>
+      </div>
+    </li>
+
+  </ul>
+
+  <!-- Spacer for visual balance -->
+  <div style="height: 40px;"></div>
+</div>
+
+</div>
+
+<!-- ==================== INFRASTRUCTURE FOOTER ==================== -->
+<div class="infra">
+  <h3>Infrastructure</h3>
+  <div class="infra-grid">
+    <div class="infra-card">
+      <h4>🖥️ VPS (Spud)</h4>
+      <div class="infra-line">
+        SSH: <code>gaz@srv1400772</code><br>
+        Spud: OpenClaw Gateway (Sonnet 4.6)<br>
+        Harbor Watcher: systemd timer / 5min<br>
+        Reminders: Express :3456<br>
+        Restart Spud: <code>systemctl --user restart openclaw-gateway</code>
+      </div>
+    </div>
+    <div class="infra-card">
+      <h4>🖥️ Mac Studio 2</h4>
+      <div class="infra-line">
+        SSH: <code>garygbvfx@garys-mac-studio-2</code><br>
+        RAG Agent: :5001 &bull; Delivery Agent: :5002<br>
+        Resolve API: :9327<br>
+        Python 3.9 &bull; launchd managed<br>
+        <strong>NEVER kill/pkill</strong> — use <code>launchctl kickstart -k</code>
+      </div>
+    </div>
+    <div class="infra-card">
+      <h4>💻 MacBook Pro</h4>
+      <div class="infra-line">
+        Gary's laptop — Claude Code sessions<br>
+        RV Shot Grabber (Cmd+Shift+G)<br>
+        Dropbox sync to Mac Studio 2<br>
+        ShotGrid REST API (OAuth2)
+      </div>
+    </div>
+    <div class="infra-card">
+      <h4>📱 iPhone</h4>
+      <div class="infra-line">
+        Discord DM → Spud<br>
+        Safari → GaryLand<br>
+        Tailscale → Reminder checklist<br>
+        <strong>Tailscale must be connected</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggle(id) {
+  const detail = document.getElementById('detail-' + id);
+  const branch = document.querySelector(`[data-id="${id}"]`);
+  const arrow = branch ? branch.querySelector(':scope > .branch-header > .arrow') : null;
+  const children = branch ? branch.querySelector(':scope > ul') : null;
+
+  if (detail) detail.classList.toggle('open');
+  if (arrow) arrow.classList.toggle('open');
+  if (children) children.classList.toggle('collapsed');
+}
+</script>
+
+</body>
+</html>

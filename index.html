@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBVFX Hub</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e17; color: #c8d6e5; font-family: 'SF Pro Display', -apple-system, 'Segoe UI', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 60px; }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 { font-size: 28px; font-weight: 300; color: #fff; letter-spacing: 2px; }
+  .header h1 span { color: #f39c12; font-weight: 600; }
+  .header .sub { font-size: 12px; color: #7a8a99; margin-top: 6px; letter-spacing: 1px; }
+
+  .section { width: 100%; max-width: 480px; margin-bottom: 28px; }
+  .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; padding-left: 4px; }
+  .section-label.work { color: #3498db; }
+  .section-label.personal { color: #9b59b6; }
+  .section-label.local { color: #f39c12; }
+
+  a.link { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 12px; text-decoration: none; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); transition: all 0.2s ease; }
+  a.link:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); transform: translateY(-1px); }
+  a.link:active { transform: translateY(0); }
+
+  .link .icon { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
+  .link .info { flex: 1; min-width: 0; }
+  .link .name { font-size: 14px; font-weight: 600; color: #fff; }
+  .link .desc { font-size: 11px; color: #7a8a99; margin-top: 2px; line-height: 1.4; }
+  .link .badge { font-size: 9px; padding: 2px 8px; border-radius: 10px; font-weight: 500; letter-spacing: 0.5px; flex-shrink: 0; white-space: nowrap; }
+  .badge-live { background: rgba(46,204,113,0.15); color: #2ecc71; }
+  .badge-local { background: rgba(243,156,18,0.15); color: #f39c12; }
+  .badge-ts { background: rgba(52,152,219,0.15); color: #3498db; }
+  .badge-file { background: rgba(155,89,182,0.15); color: #9b59b6; }
+
+  .link .arrow { color: #7a8a99; font-size: 14px; flex-shrink: 0; transition: transform 0.2s; }
+  .expand-arrow.open { transform: rotate(90deg); }
+  a.link:hover .arrow { transform: translateX(3px); color: #a3b5c5; }
+
+  .divider { width: 100%; max-width: 480px; height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0 28px; }
+
+  .footer { margin-top: 20px; text-align: center; }
+  .footer a { font-size: 11px; color: #7a8a99; text-decoration: none; letter-spacing: 1px; }
+  .footer a:hover { color: #a3b5c5; }
+
+  /* Pulse for live indicators */
+  .status { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .status-live { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; animation: pulse 2s infinite; }
+  .status-local { background: #f39c12; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="gbvfx_logo.png" alt="GBVFX" style="height: 40px; margin-bottom: 12px; opacity: 0.9;">
+  <h1>Hub</h1>
+  <div class="sub">All your dashboards in one place</div>
+</div>
+
+<!-- WORK — LIVE -->
+<div class="section">
+  <div class="section-label work">Work &mdash; Live</div>
+
+  <a class="link" href="https://iamgaryjbrown-coder.github.io/gbvfx-reports/" target="_blank">
+    <span class="icon">📊</span>
+    <div class="info">
+      <div class="name">ShotGrid Reports</div>
+      <div class="desc">PDF report generator &mdash; cost &amp; status reports from ShotGrid</div>
+    </div>
+    <span class="badge badge-live">GitHub Pages</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+
+  <a class="link" href="https://iamgaryjbrown-coder.github.io/gbvfx-deadlines/" target="_blank">
+    <span class="icon">📅</span>
+    <div class="info">
+      <div class="name">Deadline Tracker</div>
+      <div class="desc">Show deadlines, milestones &amp; delivery dates</div>
+    </div>
+    <span class="badge badge-live">GitHub Pages</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+
+  <a class="link" href="https://iamgaryjbrown-coder.github.io/gbvfx-daily-log/" target="_blank">
+    <span class="icon">📝</span>
+    <div class="info">
+      <div class="name">Daily Log</div>
+      <div class="desc">Spud's daily activity log viewer</div>
+    </div>
+    <span class="badge badge-live">GitHub Pages</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+
+  <a class="link" href="http://100.104.20.112:5002/dashboard" target="_blank">
+    <span class="icon">📦</span>
+    <div class="info">
+      <div class="name">Delivery Dashboard</div>
+      <div class="desc">QT + EXR delivery pipeline status &amp; controls</div>
+    </div>
+    <span class="badge badge-ts">Tailscale &bull; Mac Studio 2</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+
+
+
+  <a class="link" href="http://100.127.167.96:3456/" target="_blank">
+    <span class="icon">📋</span>
+    <div class="info">
+      <div class="name">Reminders Checklist</div>
+      <div class="desc">Spud's reminder check-in web UI</div>
+    </div>
+    <span class="badge badge-ts">Tailscale &bull; VPS</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+</div>
+
+<div class="divider"></div>
+
+<!-- TOOLS — RUN IN TERMINAL -->
+<div class="section">
+  <div class="section-label work">Tools &mdash; Click to Run</div>
+
+  <div class="link" style="cursor:pointer; display:block;" onclick="var d=this.querySelector('.cmd-panel');d.style.display=d.style.display==='none'?'block':'none';this.querySelector('.expand-arrow').classList.toggle('open')">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span class="icon">📸</span>
+      <div class="info" style="flex:1;">
+        <div class="name">RV Shot Grabber</div>
+        <div class="desc">Terminal commands &mdash; tap to reveal</div>
+      </div>
+      <span class="expand-arrow" style="color:#7a8a99; font-size:12px; transition:transform 0.2s; flex-shrink:0;">&#9654;</span>
+    </div>
+    <div class="cmd-panel" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06);" onclick="event.stopPropagation()">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <code style="flex:1; background:rgba(255,255,255,0.06); padding:6px 10px; border-radius:6px; font-size:11px; font-family:'SF Mono',monospace; color:#f39c12; user-select:all;">~/Dropbox/GBVFX/Other/Ai\ Agent/rv-shot-grabber/run_grabber.command</code>
+        <button onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1500)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#c8d6e5; padding:4px 10px; border-radius:6px; font-size:10px; cursor:pointer; white-space:nowrap;">Copy</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <code style="flex:1; background:rgba(255,255,255,0.06); padding:6px 10px; border-radius:6px; font-size:11px; font-family:'SF Mono',monospace; color:#a3b5c5; user-select:all;">~/Dropbox/GBVFX/Other/Ai\ Agent/rv-shot-grabber/run_grabber_offline.command</code>
+        <button onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1500)" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#c8d6e5; padding:4px 10px; border-radius:6px; font-size:10px; cursor:pointer; white-space:nowrap;">Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PERSONAL — LIVE -->
+<div class="section">
+  <div class="section-label personal">Personal &mdash; Live</div>
+
+  <a class="link" href="https://iamgaryjbrown-coder.github.io/garyland" target="_blank">
+    <span class="icon">🌍</span>
+    <div class="info">
+      <div class="name">GaryLand</div>
+      <div class="desc">Venue discovery, favourites globe &amp; And Pause benches</div>
+    </div>
+    <span class="badge badge-live">GitHub Pages</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+</div>
+
+<div class="divider"></div>
+
+<!-- LOCAL FILES -->
+<div class="section">
+  <div class="section-label local">Local &mdash; Files</div>
+
+  <a class="link" href="https://iamgaryjbrown-coder.github.io/gbvfx-reports/contacts.html" target="_blank">
+    <span class="icon">👥</span>
+    <div class="info">
+      <div class="name">Production Contacts</div>
+      <div class="desc">Editable contacts for all shows &mdash; producers, PPS, post houses</div>
+    </div>
+    <span class="badge badge-live">GitHub Pages</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+
+  <a class="link" href="pipeline_dashboard.html" target="_blank">
+    <span class="icon">🔧</span>
+    <div class="info">
+      <div class="name">Pipeline Dashboard (Local)</div>
+      <div class="desc">Offline delivery pipeline reference</div>
+    </div>
+    <span class="badge badge-file">Local file</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+
+  <a class="link" href="gbvfx_ecosystem.html" target="_blank">
+    <span class="icon">🗺️</span>
+    <div class="info">
+      <div class="name">AI Ecosystem Map</div>
+      <div class="desc">Full tree of everything built across all sessions</div>
+    </div>
+    <span class="badge badge-file">Local file</span>
+    <span class="arrow">&rsaquo;</span>
+  </a>
+</div>
+
+<div class="footer">
+  <a href="gbvfx_ecosystem.html">View full ecosystem map</a>
+</div>
+
+</body>
+</html>
